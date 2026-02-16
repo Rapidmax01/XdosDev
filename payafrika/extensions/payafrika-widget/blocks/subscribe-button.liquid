@@ -1,0 +1,44 @@
+{% comment %}
+  PayAfrika Subscribe Button - Add to product pages
+  Fetches plans from the app proxy and shows a subscribe button
+{% endcomment %}
+
+{{ 'payafrika-widget.css' | asset_url | stylesheet_tag }}
+
+<div id="payafrika-subscribe-btn"
+     class="payafrika-widget"
+     data-shop="{{ shop.permanent_domain }}"
+     data-product-id="{{ product.id }}"
+     style="margin: 16px 0;">
+  <button class="payafrika-btn payafrika-btn-primary" onclick="PayAfrika.openSubscribe()">
+    {{ block.settings.button_text }}
+  </button>
+  <div id="payafrika-modal" class="payafrika-modal" style="display:none;">
+    <div class="payafrika-modal-content">
+      <div class="payafrika-modal-header">
+        <h3>Subscribe & Save</h3>
+        <button class="payafrika-modal-close" onclick="PayAfrika.closeModal()">&times;</button>
+      </div>
+      <div id="payafrika-modal-body" class="payafrika-modal-body">
+        <p>Loading plans...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="{{ 'payafrika-widget.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "Subscribe Button",
+  "target": "section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Button Text",
+      "default": "Subscribe & Save"
+    }
+  ]
+}
+{% endschema %}

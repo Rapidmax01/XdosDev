@@ -1,0 +1,158 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Shopify session storage (required by shopify-app-remix)
+model Session {
+  id            String    @id
+  shop          String
+  state         String
+  isOnline      Boolean   @default(false)
+  scope         String?
+  expires       DateTime?
+  accessToken   String
+  userId        BigInt?
+  firstName     String?
+  lastName      String?
+  email         String?
+  accountOwner  Boolean   @default(false)
+  locale        String?
+  collaborator  Boolean?  @default(false)
+  emailVerified Boolean?  @default(false)
+}
+
+model Shop {
+  id                String   @id @default(uuid())
+  shopDomain        String   @unique
+  paystackSecretKey String?
+  paystackPublicKey String?
+  currency          String   @default("NGN")
+  invoiceLogo       String?
+  plan              String   @default("free")
+  shopifyChargeId   String?
+  whatsappApiKey    String?
+  whatsappPhoneId   String?
+  whatsappEnabled   Boolean  @default(false)
+  portalEnabled     Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  subscriptionPlans SubscriptionPlan[]
+  promoCodes        PromoCode[]
+}
+
+model SubscriptionPlan {
+  id               String   @id @default(uuid())
+  shopId           String
+  shop             Shop     @relation(fields: [shopId], references: [id])
+  name             String
+  amount           Int      // in smallest currency unit (kobo/cents)
+  currency         String
+  interval         String   // weekly|monthly|yearly
+  description      String?
+  active           Boolean  @default(true)
+  paystackPlanCode String?
+  shopifyProductId String?
+  trialDays        Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  subscribers Subscriber[]
+
+  @@index([shopId])
+}
+
+model Subscriber {
+  id                       String    @id @default(uuid())
+  planId                   String
+  plan                     SubscriptionPlan @relation(fields: [planId], references: [id])
+  shopifyCustomerId        String
+  email                    String
+  phone                    String?
+  whatsappOptIn            Boolean   @default(false)
+  paystackCustomerCode     String?
+  paystackSubscriptionCode String?
+  status                   String    @default("active") // active|paused|cancelled|trial
+  nextBillingDate          DateTime?
+  promoCodeId              String?
+  promoCode                PromoCode? @relation(fields: [promoCodeId], references: [id])
+  trialEndsAt              DateTime?
+  portalToken              String?   @unique
+  portalTokenExp           DateTime?
+  dunningStartedAt         DateTime?
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+
+  invoices        Invoice[]
+  dunningAttempts DunningAttempt[]
+  whatsappMessages WhatsAppMessage[]
+
+  @@index([planId])
+  @@index([email])
+}
+
+model Invoice {
+  id           String   @id @default(uuid())
+  subscriberId String
+  subscriber   Subscriber @relation(fields: [subscriberId], references: [id])
+  amount       Int
+  currency     String
+  status       String   @default("pending") // pending|paid|failed
+  paystackRef  String?
+  paidAt       DateTime?
+  createdAt    DateTime @default(now())
+
+  dunningAttempts DunningAttempt[]
+
+  @@index([subscriberId])
+  @@index([status])
+}
+
+model PromoCode {
+  id            String    @id @default(uuid())
+  shopId        String
+  shop          Shop      @relation(fields: [shopId], references: [id])
+  code          String
+  discountType  String    // percentage|fixed
+  discountValue Int       // percentage (0-100) or fixed amount in smallest unit
+  currency      String?
+  expiresAt     DateTime?
+  maxUses       Int?
+  usedCount     Int       @default(0)
+  active        Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+
+  subscribers Subscriber[]
+
+  @@unique([shopId, code])
+}
+
+model DunningAttempt {
+  id           String    @id @default(uuid())
+  subscriberId String
+  subscriber   Subscriber @relation(fields: [subscriberId], references: [id])
+  invoiceId    String?
+  invoice      Invoice?  @relation(fields: [invoiceId], references: [id])
+  attemptNumber Int
+  scheduledFor DateTime
+  executedAt   DateTime?
+  result       String?   // success|failed|skipped
+  action       String    // notify|retry|remind|final_warning|cancel
+  createdAt    DateTime  @default(now())
+
+  @@index([scheduledFor])
+}
+
+model WhatsAppMessage {
+  id           String   @id @default(uuid())
+  subscriberId String
+  subscriber   Subscriber @relation(fields: [subscriberId], references: [id])
+  templateName String
+  status       String   @default("sent") // sent|delivered|failed
+  sentAt       DateTime @default(now())
+}

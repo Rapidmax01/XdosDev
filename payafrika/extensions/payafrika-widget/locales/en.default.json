@@ -1,0 +1,10 @@
+{
+  "subscribe_button": {
+    "name": "Subscribe Button",
+    "button_text": "Subscribe & Save"
+  },
+  "plan_picker": {
+    "name": "Plan Picker",
+    "heading": "Subscription Plans"
+  }
+}
