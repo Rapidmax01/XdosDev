@@ -1,11 +1,11 @@
 -- CreateTable
 CREATE TABLE "Session" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "shop" TEXT NOT NULL,
     "state" TEXT NOT NULL,
     "isOnline" BOOLEAN NOT NULL DEFAULT false,
     "scope" TEXT,
-    "expires" DATETIME,
+    "expires" TIMESTAMP(3),
     "accessToken" TEXT NOT NULL,
     "userId" BIGINT,
     "firstName" TEXT,
@@ -14,12 +14,14 @@ CREATE TABLE "Session" (
     "accountOwner" BOOLEAN NOT NULL DEFAULT false,
     "locale" TEXT,
     "collaborator" BOOLEAN DEFAULT false,
-    "emailVerified" BOOLEAN DEFAULT false
+    "emailVerified" BOOLEAN DEFAULT false,
+
+    CONSTRAINT "Session_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "Shop" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "shopDomain" TEXT NOT NULL,
     "paystackSecretKey" TEXT,
     "paystackPublicKey" TEXT,
@@ -31,13 +33,15 @@ CREATE TABLE "Shop" (
     "whatsappPhoneId" TEXT,
     "whatsappEnabled" BOOLEAN NOT NULL DEFAULT false,
     "portalEnabled" BOOLEAN NOT NULL DEFAULT false,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Shop_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "SubscriptionPlan" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "shopId" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "amount" INTEGER NOT NULL,
@@ -48,14 +52,15 @@ CREATE TABLE "SubscriptionPlan" (
     "paystackPlanCode" TEXT,
     "shopifyProductId" TEXT,
     "trialDays" INTEGER NOT NULL DEFAULT 0,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
-    CONSTRAINT "SubscriptionPlan_shopId_fkey" FOREIGN KEY ("shopId") REFERENCES "Shop" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "SubscriptionPlan_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "Subscriber" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "planId" TEXT NOT NULL,
     "shopifyCustomerId" TEXT NOT NULL,
     "email" TEXT NOT NULL,
@@ -64,70 +69,73 @@ CREATE TABLE "Subscriber" (
     "paystackCustomerCode" TEXT,
     "paystackSubscriptionCode" TEXT,
     "status" TEXT NOT NULL DEFAULT 'active',
-    "nextBillingDate" DATETIME,
+    "nextBillingDate" TIMESTAMP(3),
     "promoCodeId" TEXT,
-    "trialEndsAt" DATETIME,
+    "trialEndsAt" TIMESTAMP(3),
     "portalToken" TEXT,
-    "portalTokenExp" DATETIME,
-    "dunningStartedAt" DATETIME,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
-    CONSTRAINT "Subscriber_planId_fkey" FOREIGN KEY ("planId") REFERENCES "SubscriptionPlan" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "Subscriber_promoCodeId_fkey" FOREIGN KEY ("promoCodeId") REFERENCES "PromoCode" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+    "portalTokenExp" TIMESTAMP(3),
+    "dunningStartedAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Subscriber_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "Invoice" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "subscriberId" TEXT NOT NULL,
     "amount" INTEGER NOT NULL,
     "currency" TEXT NOT NULL,
     "status" TEXT NOT NULL DEFAULT 'pending',
     "paystackRef" TEXT,
-    "paidAt" DATETIME,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT "Invoice_subscriberId_fkey" FOREIGN KEY ("subscriberId") REFERENCES "Subscriber" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+    "paidAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Invoice_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "PromoCode" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "shopId" TEXT NOT NULL,
     "code" TEXT NOT NULL,
     "discountType" TEXT NOT NULL,
     "discountValue" INTEGER NOT NULL,
     "currency" TEXT,
-    "expiresAt" DATETIME,
+    "expiresAt" TIMESTAMP(3),
     "maxUses" INTEGER,
     "usedCount" INTEGER NOT NULL DEFAULT 0,
     "active" BOOLEAN NOT NULL DEFAULT true,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT "PromoCode_shopId_fkey" FOREIGN KEY ("shopId") REFERENCES "Shop" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "PromoCode_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "DunningAttempt" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "subscriberId" TEXT NOT NULL,
     "invoiceId" TEXT,
     "attemptNumber" INTEGER NOT NULL,
-    "scheduledFor" DATETIME NOT NULL,
-    "executedAt" DATETIME,
+    "scheduledFor" TIMESTAMP(3) NOT NULL,
+    "executedAt" TIMESTAMP(3),
     "result" TEXT,
     "action" TEXT NOT NULL,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT "DunningAttempt_subscriberId_fkey" FOREIGN KEY ("subscriberId") REFERENCES "Subscriber" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "DunningAttempt_invoiceId_fkey" FOREIGN KEY ("invoiceId") REFERENCES "Invoice" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "DunningAttempt_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "WhatsAppMessage" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "subscriberId" TEXT NOT NULL,
     "templateName" TEXT NOT NULL,
     "status" TEXT NOT NULL DEFAULT 'sent',
-    "sentAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT "WhatsAppMessage_subscriberId_fkey" FOREIGN KEY ("subscriberId") REFERENCES "Subscriber" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+    "sentAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "WhatsAppMessage_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -157,3 +165,37 @@ CREATE UNIQUE INDEX "PromoCode_shopId_code_key" ON "PromoCode"("shopId", "code")
 -- CreateIndex
 CREATE INDEX "DunningAttempt_scheduledFor_idx" ON "DunningAttempt"("scheduledFor");
 
+-- AddForeignKey
+ALTER TABLE "SubscriptionPlan" ADD CONSTRAINT "SubscriptionPlan_shopId_fkey" FOREIGN KEY ("shopId") REFERENCES "Shop"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Subscriber" ADD CONSTRAINT "Subscriber_planId_fkey" FOREIGN KEY ("planId") REFERENCES "SubscriptionPlan"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Subscriber" ADD CONSTRAINT "Subscriber_promoCodeId_fkey" FOREIGN KEY ("promoCodeId") REFERENCES "PromoCode"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Invoice" ADD CONSTRAINT "Invoice_subscriberId_fkey" FOREIGN KEY ("subscriberId") REFERENCES "Subscriber"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "PromoCode" ADD CONSTRAINT "PromoCode_shopId_fkey" FOREIGN KEY ("shopId") REFERENCES "Shop"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "DunningAttempt" ADD CONSTRAINT "DunningAttempt_subscriberId_fkey" FOREIGN KEY ("subscriberId") REFERENCES "Subscriber"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "DunningAttempt" ADD CONSTRAINT "DunningAttempt_invoiceId_fkey" FOREIGN KEY ("invoiceId") REFERENCES "Invoice"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "WhatsAppMessage" ADD CONSTRAINT "WhatsAppMessage_subscriberId_fkey" FOREIGN KEY ("subscriberId") REFERENCES "Subscriber"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+┌─────────────────────────────────────────────────────────┐
+│  Update available 5.22.0 -> 7.4.0                       │
+│                                                         │
+│  This is a major update - please follow the guide at    │
+│  https://pris.ly/d/major-version-upgrade                │
+│                                                         │
+│  Run the following to update                            │
+│    npm i --save-dev prisma@latest                       │
+│    npm i @prisma/client@latest                          │
+└─────────────────────────────────────────────────────────┘

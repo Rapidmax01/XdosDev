@@ -4,6 +4,7 @@ import prisma from "../db.server";
 import { getShopFromProxy } from "../utils/proxy-auth";
 import { getOrCreateShop } from "../models/shop.server";
 import { portalLayout, escapeHtml } from "../utils/portal-html";
+import { sendEmail, buildMagicLinkEmail } from "../utils/email";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const shopDomain = getShopFromProxy(request);
@@ -87,10 +88,17 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       data: { portalToken: token, portalTokenExp: exp },
     });
 
-    // In production, send email with magic link
-    // For now, log it (the merchant would integrate email sending)
     const magicLink = `https://${shopDomain}/apps/payafrika/login?shop=${shopDomain}&token=${token}`;
-    console.log(`[PayAfrika] Magic link for ${email}: ${magicLink}`);
+
+    try {
+      await sendEmail({
+        to: email,
+        subject: `Sign in to your subscription portal — ${shopDomain}`,
+        htmlContent: buildMagicLinkEmail(magicLink, shopDomain),
+      });
+    } catch (error) {
+      console.error("[PayAfrika] Failed to send magic link email:", error);
+    }
   }
 
   const html = portalLayout(
