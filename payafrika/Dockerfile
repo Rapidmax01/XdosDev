@@ -24,9 +24,9 @@ ENV NODE_ENV=production
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=build /app/build ./build
 COPY --from=build /app/node_modules/.prisma ./node_modules/.prisma
-COPY package.json ./
+COPY package.json server.js ./
 COPY prisma ./prisma
 
 EXPOSE 3000
 
-CMD ["sh", "-c", "npx prisma migrate deploy && npm run start"]
+CMD ["sh", "-c", "npx prisma db push --skip-generate && npm run start"]

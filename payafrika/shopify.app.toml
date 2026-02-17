@@ -2,7 +2,7 @@
 
 client_id = "3fe431ee1077d0cd6946bca03fd67964"
 name = "PayAfrika"
-application_url = "https://example.com"
+application_url = "https://payafrika.fly.dev"
 embedded = true
 
 [build]
@@ -19,10 +19,14 @@ optional_scopes = [ ]
 use_legacy_install_flow = false
 
 [auth]
-redirect_urls = [ ]
+redirect_urls = [
+  "https://payafrika.fly.dev/auth/callback",
+  "https://payafrika.fly.dev/auth/shopify/callback",
+  "https://payafrika.fly.dev/api/auth/callback"
+]
 
 [app_proxy]
-url = "https://example.com/proxy"
+url = "https://payafrika.fly.dev/proxy"
 subpath = "payafrika"
 prefix = "apps"
 
