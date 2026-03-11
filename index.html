@@ -573,35 +573,52 @@
 
     <button class="scroll-top" aria-label="Scroll to top">&uarr;</button>
 
+    <!-- Chat Widget -->
+    <div class="chat-widget">
+        <button class="chat-bubble" aria-label="Open chat">
+            <svg class="chat-icon-open" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            <svg class="chat-icon-close" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+        </button>
+        <div class="chat-window">
+            <div class="chat-header">
+                <div class="chat-header-info">
+                    <div class="chat-avatar">X</div>
+                    <div>
+                        <div class="chat-header-name">XdosDev</div>
+                        <div class="chat-header-status"><span class="chat-status-dot"></span> We typically reply within an hour</div>
+                    </div>
+                </div>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <div class="chat-msg chat-msg--bot">
+                    <div class="chat-msg-bubble">Hi there! How can we help you today? Send us a message and we'll get back to you shortly.</div>
+                </div>
+            </div>
+            <form class="chat-form" id="chatForm" action="https://formspree.io/f/xzzaypvb" method="POST">
+                <input type="hidden" name="_subject" value="New chat message from XdosDev website">
+                <div class="chat-input-row" id="chatNameRow">
+                    <input type="text" name="name" class="chat-input" placeholder="Your name" required id="chatName">
+                </div>
+                <div class="chat-input-row" id="chatEmailRow" style="display:none;">
+                    <input type="email" name="email" class="chat-input" placeholder="Your email" required id="chatEmail">
+                </div>
+                <div class="chat-input-row" id="chatMsgRow" style="display:none;">
+                    <input type="text" name="message" class="chat-input" placeholder="Type your message..." required id="chatMsg">
+                    <button type="submit" class="chat-send" aria-label="Send message">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                        </svg>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="script.js"></script>
-
-    <!-- Tawk.to Live Chat -->
-    <script type="text/javascript">
-    function loadTawkTo() {
-        try {
-            var Tawk_API = Tawk_API || {};
-            var Tawk_LoadStart = new Date();
-            (function(){
-                var s1 = document.createElement("script");
-                var s0 = document.getElementsByTagName("script")[0];
-                s1.async = true;
-                s1.src = 'https://embed.tawk.to/68be9093d2d7b0192deb3131/1j4k69fqv';
-                s1.charset = 'UTF-8';
-                s1.setAttribute('crossorigin', '*');
-                s1.onerror = function() {
-                    console.log('Tawk.to chat unavailable in this environment');
-                };
-                s0.parentNode.insertBefore(s1, s0);
-            })();
-        } catch (error) {
-            console.log('Live chat not available in this environment');
-        }
-    }
-
-    setTimeout(function() {
-        loadTawkTo();
-    }, 2000);
-    </script>
 
 </body>
 </html>

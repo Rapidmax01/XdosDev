@@ -9,6 +9,7 @@ class XdosDev {
         this.setupFadeInObserver();
         this.setupStatCountUp();
         this.setupImageFallbacks();
+        this.setupChatWidget();
     }
 
     // --- Navigation ---
@@ -241,6 +242,125 @@ class XdosDev {
             div.style.transition = 'opacity 0.3s ease';
             setTimeout(() => div.remove(), 300);
         }, 8000);
+    }
+
+    // --- Chat Widget ---
+    setupChatWidget() {
+        const widget = document.querySelector('.chat-widget');
+        const bubble = document.querySelector('.chat-bubble');
+        const chatForm = document.getElementById('chatForm');
+        const chatMessages = document.getElementById('chatMessages');
+        const nameRow = document.getElementById('chatNameRow');
+        const emailRow = document.getElementById('chatEmailRow');
+        const msgRow = document.getElementById('chatMsgRow');
+        const nameInput = document.getElementById('chatName');
+        const emailInput = document.getElementById('chatEmail');
+        const msgInput = document.getElementById('chatMsg');
+        const scrollTopBtn = document.querySelector('.scroll-top');
+
+        if (!widget || !bubble) return;
+
+        let step = 'name'; // name -> email -> message
+        let userName = '';
+        let userEmail = '';
+
+        bubble.addEventListener('click', () => {
+            widget.classList.toggle('open');
+            if (scrollTopBtn) {
+                scrollTopBtn.style.bottom = widget.classList.contains('open') ? '100px' : '';
+            }
+        });
+
+        // Close on outside click
+        document.addEventListener('click', (e) => {
+            if (widget.classList.contains('open') && !widget.contains(e.target)) {
+                widget.classList.remove('open');
+                if (scrollTopBtn) scrollTopBtn.style.bottom = '';
+            }
+        });
+
+        // Handle Enter key on name and email inputs
+        nameInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (!nameInput.value.trim()) return;
+                userName = nameInput.value.trim();
+                this.addChatMessage(chatMessages, userName, 'user');
+                nameRow.style.display = 'none';
+                emailRow.style.display = 'flex';
+                emailInput.focus();
+                this.addChatMessage(chatMessages, `Nice to meet you, ${userName}! What's your email so we can get back to you?`, 'bot');
+                step = 'email';
+            }
+        });
+
+        emailInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (!emailInput.value.trim() || !emailInput.checkValidity()) return;
+                userEmail = emailInput.value.trim();
+                this.addChatMessage(chatMessages, userEmail, 'user');
+                emailRow.style.display = 'none';
+                msgRow.style.display = 'flex';
+                msgInput.focus();
+                this.addChatMessage(chatMessages, 'Great! How can we help you today?', 'bot');
+                step = 'message';
+            }
+        });
+
+        chatForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (step === 'name') {
+                if (!nameInput.value.trim()) return;
+                nameInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+                return;
+            }
+            if (step === 'email') {
+                if (!emailInput.value.trim()) return;
+                emailInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+                return;
+            }
+
+            const message = msgInput.value.trim();
+            if (!message) return;
+
+            this.addChatMessage(chatMessages, message, 'user');
+            msgInput.value = '';
+
+            const sendBtn = chatForm.querySelector('.chat-send');
+            sendBtn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('name', userName);
+            formData.append('email', userEmail);
+            formData.append('message', message);
+            formData.append('_subject', 'Chat message from ' + userName + ' via XdosDev');
+
+            fetch(chatForm.action, {
+                method: 'POST',
+                body: formData,
+                headers: { 'Accept': 'application/json' }
+            }).then(response => {
+                if (response.ok) {
+                    this.addChatMessage(chatMessages, 'Thanks for your message! We\'ll get back to you at ' + userEmail + ' shortly.', 'bot');
+                } else {
+                    this.addChatMessage(chatMessages, 'Something went wrong. Please email us at info@xdosdev.com instead.', 'bot');
+                }
+            }).catch(() => {
+                this.addChatMessage(chatMessages, 'Connection error. Please email us at info@xdosdev.com instead.', 'bot');
+            }).finally(() => {
+                sendBtn.disabled = false;
+                msgInput.focus();
+            });
+        });
+    }
+
+    addChatMessage(container, text, type) {
+        const msg = document.createElement('div');
+        msg.className = `chat-msg chat-msg--${type === 'user' ? 'user' : 'bot'}`;
+        msg.innerHTML = `<div class="chat-msg-bubble">${text}</div>`;
+        container.appendChild(msg);
+        container.scrollTop = container.scrollHeight;
     }
 
     // --- Image Error Fallbacks ---
